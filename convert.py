@@ -93,18 +93,18 @@ def main():
         os.makedirs(formatted_dir_path)
     clear_output_folder(formatted_dir_path)
 
-    folder_number = 1    
+    # folder_number = 1    
     for filename in sorted(os.listdir(output_dir_path)):
         if filename.endswith('.csv'):
             # Create a unique folder for each group of files based on output number
-            unique_folder_path = os.path.join(formatted_dir_path, f'output{folder_number}')
-            os.makedirs(unique_folder_path, exist_ok=True)
+            # unique_folder_path = os.path.join(formatted_dir_path, f'output')
+            # os.makedirs(unique_folder_path, exist_ok=True)
             # Check if number after first - and after ouput is the same as folder_number
-            if filename.split('-')[1] != str(folder_number):
-                folder_number += 1
+            # if filename.split('-')[1] != str(folder_number):
+            #     folder_number += 1
             
             input_file_path = os.path.join(output_dir_path, filename)
-            output_file_path = os.path.join(unique_folder_path, filename)
+            output_file_path = os.path.join(formatted_dir_path, filename)
             
             data = []
             with open(input_file_path, 'r') as csvfile:
