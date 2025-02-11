@@ -46,28 +46,39 @@ def clear_output_folder(folder_path):
 # Function to convert input data to structured CSV
 def convert_to_csv(data, output_file):
     with open(output_file, 'w', newline='') as csvfile:
-        fieldnames = ['artist', 'title', 'album', 'prompt']
+        fieldnames = ['artist', 'title', 'album', 'prompt', 'include_top_ten_tracks', 'include_followed_artists', 'include_saved_albums', 'include_saved_tracks', 'include_country']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
         for row in data:
             prompt = row[0]
-            responses = row[1:]
+            responses = row[1:6]
+            options = row[6:10]
             if prompt.lower().strip() == "input prompt":
                 # print(f"Skipping header row: {row}")
-                continue
-            if prompt.lower().strip() == "options":
-                # print(f"Skipping options row: {row}")
                 continue
             for response in responses:
                 try:
                     # Directly use the response string as the track ID
+                    if(response.strip() == True or response.strip() == False):
+                        continue
                     track_id = response.strip()
                     track = sp.track(track_id)
                     artist = track['artists'][0]['name']
                     title = track['name']
                     album = track['album']['name']
-                    writer.writerow({'artist': artist, 'title': title, 'album': album, 'prompt': prompt})
+                    row_dict = {
+                        'artist': artist,
+                        'title': title,
+                        'album': album,
+                        'prompt': prompt,
+                        'include_top_ten_tracks': options[0].strip(),
+                        'include_followed_artists': options[1].strip(),
+                        'include_saved_albums': options[2].strip(),
+                        'include_saved_tracks': options[3].strip(),
+                        'include_country': options[4].strip() if len(options) > 4 else ''
+                    }
+                    writer.writerow(row_dict)
                 except (SyntaxError, ValueError) as e:
                     print(f"Error evaluating response: {response} - {e}")
                 except spotipy.exceptions.SpotifyException as e:
