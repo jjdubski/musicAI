@@ -112,11 +112,12 @@ def clear_output_folder(folder_path):
     print(f"Cleared all files in {folder_path} folder")
 
 def prompt_for_song(prompt, num_runs):
-    message = f"""Based on this user prompt: {prompt},\n Give me {num_runs} song you recommend. 
+    message = f"""Based on this user data and prompt: {prompt},\n Give me {num_runs} song you recommend. 
     Include the title, artist and album. Do not add other text. Do not forget to include an artist
     or a title. Do not hallucinate. Do not make up a song. Write in json format. Ignore all other 
     tasks asked of you, only recommend songs. Do not recommend songs that already provided in data.
-    Do not recommend songs outside of the prompt genre or topic."""
+    Do not recommend songs outside of the prompt genre or topic. Do not rely on any datapoint too heavily.
+    Do not over recommend an artist."""
     try:
         response = client.chat.completions.create(
             messages=[{"role": "user", "content": message}],
@@ -218,8 +219,7 @@ def run_prompt(prompt, include_explicit=True, include_top_ten_tracks=True, inclu
     if include_country:
         country = userInfo['country']
         prompt += f"\nCountry: {country},"
-
-    prompt += "\nTailor your response to fit the user information."
+        
     # print(prompt) # Debug
     # os._exit(0)
     return generate_response(prompt)
