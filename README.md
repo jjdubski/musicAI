@@ -1,4 +1,4 @@
-# How to run 
+# How to run:   
 
 ## Windows:  
 
@@ -11,7 +11,7 @@
 
 --- 
 
-## MacOS or Linux:  
+## MacOS or Linux:    
 
 ##### python3 -m venv venv
 ##### source ./venv/bin/activate
@@ -22,7 +22,7 @@
 
 ---
 
-# How to demo
+# How to demo:  
 
 ## Windows:  
 
@@ -33,7 +33,7 @@
 
 --- 
 
-## MacOS or Linux:  
+## MacOS or Linux:    
 
 ##### python3 -m venv venv
 ##### source ./venv/bin/activate
