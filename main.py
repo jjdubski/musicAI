@@ -142,6 +142,8 @@ def prompt_for_song(prompt, num_runs):
         except Exception as e:
             print(f"GPT Error: {e}")
             if "rate_limit_exceeded" in str(e):
+                if len(unknown_songs) > 50:
+                    unknown_songs.clear()
                 print("Rate limit exceeded. Waiting for 30 seconds before retrying...")
                 time.sleep(30)
             else:
@@ -183,6 +185,8 @@ def generate_response(prompt, num_runs=5):
             # print(ban_list) # Debug
             while not track_id:
                 # add ban list to end of prompt
+                if len(ban_list) > 30:
+                    unknown_songs.clear()
                 prompt += f"\n\nThe following songs are already in the list or do not exist: {ban_list}, {unknown_songs}. Do not recommend them."
                 print(f"\t\tRe-prompting for song: ")
                 track = prompt_for_song(prompt, 1)
