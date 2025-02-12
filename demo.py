@@ -189,6 +189,9 @@ def check_song_exists(title, artist, verbose=True):
         return None
 
 def main():
+    # remove .cache file
+    if os.path.exists(".cache"):
+        os.remove(".cache")
     prompt = input("Write input prompt here: ")
     options = [
         'include_top_ten_tracks',

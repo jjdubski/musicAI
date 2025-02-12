@@ -343,6 +343,9 @@ def process_csv(input_file):
             rowNum += 1
 
 def main():
+    # remove .cache file
+    if os.path.exists(".cache"):
+        os.remove(".cache")
     test_spotify()
 
     output_folder = "output"  
