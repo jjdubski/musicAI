@@ -146,7 +146,7 @@ def prompt_for_song(prompt, num_runs):
     return None
 
 def find_new_song(title, artist, tracks=[]):
-    print(f"\tSearching for track ID for: {title} by {artist}")
+    print(f"\tSearching track ID for: {title} by {artist}")
     track_id = check_song_exists(title, artist)
     if track_id in tracks:
             print(f"\t\tTrack already recommended, skipping.")
