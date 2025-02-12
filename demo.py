@@ -150,7 +150,7 @@ def process_json(output):
     except:
         print(f"Error parsing JSON response: {output}")
 
-def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True, include_followed_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
+def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
     if include_top_ten_tracks:
         top_ten_tracks = [track['name'] for track in userInfo['top_ten_tracks']['items']]
         prompt += f"\nTop 10 Songs: {top_ten_tracks},"
