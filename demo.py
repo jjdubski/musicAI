@@ -129,6 +129,11 @@ def generate_response(prompt, num_runs=20):
             # print(ban_list) # Debug
             while not track_id:
                 # add ban list to end of prompt
+                # if unknown_songs gets too large reset it
+                if len(unknown_songs) > 50:
+                    unknown_songs.clear()
+                if len(ban_list) > 30:
+                    unknown_songs.clear()
                 prompt += f"\n\nThe following songs are already in the list or do not exist: {ban_list}, {unknown_songs}. Do not recommend them."
                 print(f"\t\tRe-prompting for song: ")
                 track = prompt_for_song(prompt, 1)
