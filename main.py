@@ -3,6 +3,9 @@ import os
 import glob
 import spotipy
 import json
+import subprocess
+import sys
+import time
 from spotipy.oauth2 import SpotifyOAuth
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -342,6 +345,11 @@ def main():
     input_csv = "input.csv"   # Change this to your actual input file
     process_csv(input_csv)
     print(f"Done.")
+
+    # run convert.py
+    print("Running convert.py")
+    time.sleep(1)
+    subprocess.run([sys.executable, "convert.py"], check=True)
 
 if __name__ == "__main__":
     main()
