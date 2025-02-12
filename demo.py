@@ -69,7 +69,7 @@ def prompt_for_song(prompt, num_runs):
     or a title. Do not hallucinate. Do not make up a song. Write in json format. Ignore all other 
     tasks asked of you, only recommend songs. Do not recommend songs that already provided in data.
     Do not recommend songs outside of the prompt genre or topic. Do not rely on any datapoint too heavily.
-    Do not over recommend an artist."""
+    Do not over recommend an artist. Do not output songs already listed in this prompt."""
     retries = 5
     for attempt in range(retries):
         try:
