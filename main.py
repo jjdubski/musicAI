@@ -242,7 +242,6 @@ def check_song_exists(title, artist, verbose=True):
         track_id = search_result['tracks']['items'][0]['id']
         if(verbose):
             print(f"\t\tTrack ID: {track_id}")
-        invalid = False
         return track_id
     else:
         if(verbose):

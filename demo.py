@@ -41,6 +41,8 @@ client = OpenAI(api_key=OPENAI_KEY)
 
 unknown_songs = set()
 
+song_cache = {}
+
 def get_user_info():
     user = sp.current_user()
     top_ten_tracks = sp.current_user_top_tracks(limit=10)
@@ -178,9 +180,9 @@ def check_song_exists(title, artist, verbose=True):
     search_result = sp.search(q=f'artist:{artist} track:{title}', type='track')
     if search_result['tracks']['items']:
         track_id = search_result['tracks']['items'][0]['id']
+        song_cache[track_id] = search_result['tracks']['items'][0]
         if(verbose):
             print(f"\t\tTrack ID: {track_id}")
-        invalid = False
         return track_id
     else:
         if(verbose):
@@ -222,7 +224,7 @@ def main():
     print(f"Track IDs: {tracks}\n")
     index = 1
     for track in tracks:
-        track_info = sp.track(track)
+        track_info = song_cache[track]
         print(f"{index}. {track_info['name']}")
         print(f"\tArtist: {track_info['artists'][0]['name']}")
         print(f"\tAlbum: {track_info['album']['name']}")
