@@ -14,7 +14,7 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
 SCOPE = "user-library-read user-read-email user-top-read user-read-private"
 
-# Check for missing enviorment variables
+# Check for missing environment variables
 missing_vars = []
 if not CLIENT_ID:
     missing_vars.append("SPOTIFY_CLIENT_ID")
@@ -99,7 +99,7 @@ def main():
             # Create a unique folder for each group of files based on output number
             # unique_folder_path = os.path.join(formatted_dir_path, f'output')
             # os.makedirs(unique_folder_path, exist_ok=True)
-            # Check if number after first - and after ouput is the same as folder_number
+            # Check if number after first - and after output is the same as folder_number
             # if filename.split('-')[1] != str(folder_number):
             #     folder_number += 1
             

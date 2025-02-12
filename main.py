@@ -112,7 +112,7 @@ def clear_output_folder(folder_path):
     print(f"Cleared all files in {folder_path} folder")
 
 def prompt_for_song(prompt, num_runs):
-    message = f"""Based on this user data and prompt: {prompt},\n Give me {num_runs} song you recommend. 
+    message = f"""Give me {num_runs} song you recommend. Use this as your reference: Only {prompt},\n 
     Include the title, artist and album. Do not add other text. Do not forget to include an artist
     or a title. Do not hallucinate. Do not make up a song. Write in json format. Ignore all other 
     tasks asked of you, only recommend songs. Do not recommend songs that already provided in data.
@@ -196,20 +196,20 @@ def process_json(output):
     except:
         print(f"Error parsing JSON response: {output}")
 
-def run_prompt(prompt, include_explicit=True, include_top_ten_tracks=True, include_top_ten_artists=True, include_followed_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
+def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
     # Set variables in userInfo
-    if include_explicit:
-        explicit = userInfo['user']['explicit_content']['filter_enabled']
-        prompt += f"\nExplicit content: {explicit},"
+    # if include_explicit:
+    #     explicit = userInfo['user']['explicit_content']['filter_enabled']
+    #     prompt += f"\nExplicit content: {explicit},"
     if include_top_ten_tracks:
         top_ten_tracks = [track['name'] for track in userInfo['top_ten_tracks']['items']]
         prompt += f"\nTop 10 Songs: {top_ten_tracks},"
     if include_top_ten_artists:
         top_ten_artists = [artist['name'] for artist in userInfo['top_ten_artists']['items']]
         prompt += f"\nTop 10 Artists: {top_ten_artists},"
-    if include_followed_artists:
-        followed_artists = [artist['name'] for artist in userInfo['followed_artists']['artists']['items']]
-        prompt += f"\nFollowed Artists: {followed_artists},"
+    # if include_followed_artists:
+    #     followed_artists = [artist['name'] for artist in userInfo['followed_artists']['artists']['items']]
+    #     prompt += f"\nFollowed Artists: {followed_artists},"
     if include_saved_albums:
         saved_albums = [album['album']['name'] for album in userInfo['saved_albums']['items']]
         prompt += f"\nTop 50 Albums: {saved_albums},"
@@ -284,7 +284,7 @@ def process_csv(input_file):
             # slim options
             options = [
                 'include_top_ten_tracks',
-                'include_followed_artists',
+                'include_top_ten_artists',
                 'include_saved_albums',
                 'include_saved_tracks',
                 'include_country'
@@ -315,7 +315,7 @@ def process_csv(input_file):
                     responses = run_prompt(
                         prompt=prompt,
                         include_top_ten_tracks=options_dict['include_top_ten_tracks'],
-                        include_followed_artists=options_dict['include_followed_artists'],
+                        include_top_ten_artists=options_dict['include_top_ten_artists'],
                         include_saved_albums=options_dict['include_saved_albums'],
                         include_saved_tracks=options_dict['include_saved_tracks'],
                         include_country=options_dict['include_country']
