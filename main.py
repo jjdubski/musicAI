@@ -170,6 +170,8 @@ def generate_response(prompt, num_runs=5):
     # print(output_list)
     while len(track_ids) < num_runs:
         for song in output_list:
+            if len(track_ids) >= num_runs:
+                break
             artist = song["artist"].strip()
             title = song["title"].strip()
             # Determine if song is valid and return track ID

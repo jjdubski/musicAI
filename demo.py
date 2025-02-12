@@ -63,8 +63,6 @@ def get_user_info():
     # print(userInfo) # Debug
     return userInfo
 
-userInfo = get_user_info()
-
 def prompt_for_song(prompt, num_runs):
     message = f"""Give me {num_runs} song you recommend. Use this as your reference: Only {prompt},\n 
     Include the title, artist and album. Do not add other text. Do not forget to include an artist
@@ -118,6 +116,8 @@ def generate_response(prompt, num_runs=20):
     # print(output_list)
     while len(track_ids) < num_runs:
         for song in output_list:
+            if len(track_ids) >= num_runs:
+                break
             artist = song["artist"].strip()
             title = song["title"].strip()
             # Determine if song is valid and return track ID
@@ -156,7 +156,7 @@ def process_json(output):
     except:
         print(f"Error parsing JSON response: {output}")
 
-def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
+def run_prompt(prompt, userInfo, include_top_ten_tracks=True, include_top_ten_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
     if include_top_ten_tracks:
         top_ten_tracks = [track['name'] for track in userInfo['top_ten_tracks']['items']]
         prompt += f"\nTop 10 Songs: {top_ten_tracks},"
@@ -174,7 +174,6 @@ def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True
         prompt += f"\nCountry: {country},"
     
     return generate_response(prompt)
-    
 
 def check_song_exists(title, artist, verbose=True):
     if f"{title}-{artist}" in unknown_songs:
@@ -198,7 +197,8 @@ def main():
     # remove .cache file
     if os.path.exists(".cache"):
         os.remove(".cache")
-    prompt = input("Write input prompt here: ")
+    userInfo = get_user_info()
+    prompt = input("Topic or genre: ")
     options = [
         'include_top_ten_tracks',
         'include_top_ten_artists',
@@ -219,13 +219,16 @@ def main():
                 print(f"\t\t{key.split('_', 1)[1]}: {value}")
     print("🧠 Thinking... Please wait.")
     tracks = run_prompt(prompt=prompt,
+        userInfo=userInfo,
         include_top_ten_tracks=options_dict['include_top_ten_tracks'],
         include_top_ten_artists=options_dict['include_top_ten_artists'],
         include_saved_albums=options_dict['include_saved_albums'],
         include_saved_tracks=options_dict['include_saved_tracks'],
         include_country=options_dict['include_country']
     )
-    print(f"Track IDs: {tracks}\n")
+    # print(f"Track IDs: {tracks}\n") # Debug
+    print(f"\nBased on '{prompt}'")
+    print("🎶 Here are the recommended songs:\n")
     index = 1
     for track in tracks:
         track_info = song_cache[track]
@@ -234,7 +237,6 @@ def main():
         print(f"\tAlbum: {track_info['album']['name']}")
         print(f"\tURL: {track_info['external_urls']['spotify']}\n")
         index += 1
-
 
 if __name__ == "__main__":
     main()
