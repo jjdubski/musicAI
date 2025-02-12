@@ -18,6 +18,7 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
 SCOPE = "user-library-read user-read-email user-top-read user-read-private user-follow-read"
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+print(CLIENT_ID) # Debug
 
 # Check for missing enviorment variables
 missing_vars = []
@@ -45,6 +46,8 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 client = OpenAI(api_key=OPENAI_KEY)
 
 unknown_songs = set()
+
+song_cache = {}
 
 def get_user_info():
     user = sp.current_user()
@@ -167,6 +170,8 @@ def generate_response(prompt, num_runs=5):
     # print(output_list)
     while len(track_ids) < num_runs:
         for song in output_list:
+            if len(track_ids) >= num_runs:
+                break
             artist = song["artist"].strip()
             title = song["title"].strip()
             # Determine if song is valid and return track ID
@@ -237,17 +242,27 @@ def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True
     
 
 def check_song_exists(title, artist, verbose=True):
-    search_result = sp.search(q=f'artist:{artist} track:{title}', type='track')
-    if search_result['tracks']['items']:
-        track_id = search_result['tracks']['items'][0]['id']
+    if f"{title}-{artist}" in unknown_songs:
+        print(f"\t\tUnknown track, skipping.")
+        return None
+    if f"{title}-{artist}" in song_cache:
+        track_id = song_cache[f"{title}-{artist}"]
         if(verbose):
-            print(f"\t\tTrack ID: {track_id}")
+                print(f"\t\tTrack ID: {track_id}")
         return track_id
     else:
-        if(verbose):
-            print(f"\t\tTrack not found")
-            unknown_songs.add(f"{title}-{artist}")
-        return None
+        search_result = sp.search(q=f'artist:{artist} track:{title}', type='track')
+        if search_result['tracks']['items']:
+            track_id = search_result['tracks']['items'][0]['id']
+            song_cache[f"{title}-{artist}"] = track_id
+            if(verbose):
+                print(f"\t\tTrack ID: {track_id}")
+            return track_id
+        else:
+            if(verbose):
+                print(f"\t\tTrack not found")
+                unknown_songs.add(f"{title}-{artist}")
+            return None
 
 # def is_song_related(prompt):
 #    # Use GPT to determine if the prompt is music-related.

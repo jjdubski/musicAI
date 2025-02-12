@@ -1,7 +1,12 @@
 import os
+import sys
+import subprocess
 import spotipy
+import requests
 import json
 import time
+from ollama import chat
+from ollama import ChatResponse
 from spotipy.oauth2 import SpotifyOAuth
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -36,8 +41,112 @@ auth_manager = SpotifyOAuth(client_id=CLIENT_ID,
                             scope=SCOPE)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
-# Setup OpenAI connection
-client = OpenAI(api_key=OPENAI_KEY)
+# Setup DeepSeek connection
+inputModel = "deepseek-r1:1.5b"
+num_ctx = 4096
+headers = {
+    'Content-Type': 'application/json'
+}
+
+def setup_deepseek():
+    # Stop the existing container if running
+    print("\033[34m Stopping the existing container... \033[0m")
+    try:
+        subprocess.run(["docker", "stop", "ollama"], check=True)
+    except subprocess.CalledProcessError as e:
+        print("\033[33m No existing container to stop. \033[0m") 
+
+    # Remove the existing container
+    print("\033[34m Removing the existing container... \033[0m")
+    try:
+        subprocess.run(["docker", "rm", "ollama"], check=True)
+    except subprocess.CalledProcessError as e:
+        print("\033[33m No existing container to remove. \033[0m")
+
+    # Run a new container
+    print("\033[34m Starting a new container... \033[0m")
+    try:
+        subprocess.run([
+        "docker", "run", "-d", "-v", "ollama:/root/.ollama", 
+        "-p", "11434:11434", "--name", "ollama", "ollama/ollama"
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit("\033[31m Failed to start the container. Ensure Docker is running. \033[0m")
+
+    # Pull the model
+    print(f"Pulling the model {inputModel}...")
+    try:
+        subprocess.run(["docker", "exec", "ollama", "ollama", "pull", inputModel], check=True)
+    except:
+        sys.exit(f"\033[31m Failed to pull the model: \t{inputModel} \n\033[0m Make sure you have the correct model name.")
+
+def test_deepseek():
+    # Check if ollama container is running
+    print("\033[34m Checking if the container is running... \033[0m")
+    try:
+        subprocess.run(["docker", "logs", "ollama"], check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit("\033[31m Container is not running. \033[0m")
+
+    # Notfiy the user that the container has started successfully
+    print("\033[32m Container started successfully! \033[0m")
+    print("\033[34m Connecting to the container... \033[0m")
+
+    # Wait for the container to start
+    time.sleep(3)
+
+    # Check connection to ollama container
+    try:
+        response = requests.get('http://localhost:11434/api/version')
+        if response.status_code == 200:
+            version_info = json.loads(response.text)
+    except:
+        sys.exit('\033[31m Failed to connect to ollama. \033[0m')
+    print("\033[32m Connected to ollama successfully! \n\033[0m")
+
+    # Check the if a model is available
+    print(" Checking available models...")    
+    try:
+        response = requests.get('http://localhost:11434/api/tags')
+        if response.status_code == 200:
+            # Debug
+            # models = json.loads(response.text)
+            # print("Available models:")
+            # for model in models['models']:
+            #     print(f"Name: {model['name']}")
+            #     print(f"Model: {model['model']}")
+            #     print(f"Modified At: {model['modified_at']}")
+            #     print(f"Size: {model['size']} bytes")
+            #     print(f"Digest: {model['digest']}")
+            #     print("Details:")
+            #     for key, value in model['details'].items():
+            #         print(f"  {key}: {value}")
+            models = json.loads(response.text)
+            print(" Available models:")
+            for model in models['models']:
+                print(f"\033[0mName:\033[35m {model['name']} \033[0m")
+                print(f"Model:\033[35m {model['model']} \033[0m")
+                print(f"Size:\033[35m {model['size']} bytes \n\033[0m")
+    except:
+        sys.exit('\033[31m No models found. Try to pull manually. \033[0m')
+
+    print("\033[36m Running a test prompt with your model... \n\033[0m")  
+    start_time = time.time()
+    try:
+        response = requests.post(
+                'http://localhost:11434/api/generate',
+                headers=headers,
+                data=json.dumps({
+                    'model': inputModel,
+                    'prompt': ' ',
+                })
+            )
+    except:
+        sys.exit('\033[31m Your model is not functioning or missing. Try to remove it and pull manually. \033[0m')
+    end_time = time.time()
+    print(f"\033[32m Test prompt completed in \033[0m{end_time - start_time:.2f} seconds")
+    print("\033[32m All tests passed successfully. \033[0m")    
+    print(f"\033[33m Using model:\t{inputModel} \033[0m\n")
 
 unknown_songs = set()
 
@@ -73,25 +182,43 @@ def prompt_for_song(prompt, num_runs):
     retries = 5
     for attempt in range(retries):
         try:
-            response = client.chat.completions.create(
-                messages=[{"role": "user", "content": message}],
-                model="gpt-4o",
-                n=1,
-                temperature=0.7,
-                logprobs=None,
-                store=False
+            response = requests.post(
+            'http://localhost:11434/api/generate',
+            headers=headers,
+            data=json.dumps({
+                'model': inputModel,
+                'prompt': prompt+"Only JSON format as output, follow this template {title: '', artist: '', album: ''}",
+                "options": {"num_ctx": num_ctx}
+                })
             )
-            output = response.choices[0].message.content
-            if not output.strip():
-                raise ValueError("Received empty response from GPT")
-            return output
-        except Exception as e:
-            print(f"GPT Error: {e}")
-            if "rate_limit_exceeded" in str(e):
-                print("Rate limit exceeded. Waiting for 30 seconds before retrying...")
-                time.sleep(30)
+            time.sleep(1)
+            if response.status_code == 200:
+                thinking = True
+                # i = 1
+                for line in response.text.splitlines():
+                    try:
+                        data = json.loads(line)
+                        if 'response' in data:
+                            # print(i,". ", data['response'], end='') # Debug
+                            if '<think>' in data['response']:
+                                thinking = True
+                            elif'</think>' in data['response']:
+                                thinking = False
+                            else:
+                                response = data['response']
+                                if not thinking:
+                                    print(response, end='')
+                    except json.JSONDecodeError:
+                        continue
+                    # i += 1
             else:
-                break
+                print(f"\nRequest failed with status code {response.status_code}")
+                print(f"Response: {response.text}")
+            if not response.strip():
+                raise ValueError("Received empty response from GPT")
+            return response
+        except Exception as e:
+            break
     return None
 
 def find_new_song(title, artist, tracks=[]):
@@ -102,7 +229,7 @@ def find_new_song(title, artist, tracks=[]):
             track_id = None
     return track_id
 
-# Generate a response using ChatGPT 4o
+# Generate a response 
 response_index = 1
 def generate_response(prompt, num_runs=20):
     # global response_index 
@@ -129,11 +256,6 @@ def generate_response(prompt, num_runs=20):
             # print(ban_list) # Debug
             while not track_id:
                 # add ban list to end of prompt
-                # if unknown_songs gets too large reset it
-                if len(unknown_songs) > 50:
-                    unknown_songs.clear()
-                if len(ban_list) > 30:
-                    unknown_songs.clear()
                 prompt += f"\n\nThe following songs are already in the list or do not exist: {ban_list}, {unknown_songs}. Do not recommend them."
                 print(f"\t\tRe-prompting for song: ")
                 track = prompt_for_song(prompt, 1)
@@ -154,12 +276,16 @@ def generate_response(prompt, num_runs=20):
     return track_ids
 
 def process_json(output):
+    if output is None:
+        print("Error: Received None as output.")
+        return 
     output = output.strip().strip("```json").strip("```")
     try:
         output_list = json.loads(output)
         return output_list
     except:
         print(f"Error parsing JSON response: {output}")
+        return 
 
 def run_prompt(prompt, userInfo, include_top_ten_tracks=True, include_top_ten_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
     if include_top_ten_tracks:
@@ -199,6 +325,9 @@ def check_song_exists(title, artist, verbose=True):
         return None
 
 def main():
+    # Setup DeepSeek
+    setup_deepseek()
+    test_deepseek()
     # remove .cache file
     if os.path.exists(".cache"):
         os.remove(".cache")
