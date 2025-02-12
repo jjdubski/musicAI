@@ -142,7 +142,7 @@ def prompt_for_song(prompt, num_runs):
         except Exception as e:
             print(f"GPT Error: {e}")
             if "rate_limit_exceeded" in str(e):
-                if len(unknown_songs) > 50:
+                if len(unknown_songs) > 30:
                     unknown_songs.clear()
                 print("Rate limit exceeded. Waiting for 30 seconds before retrying...")
                 time.sleep(30)
