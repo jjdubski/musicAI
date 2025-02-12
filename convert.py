@@ -53,7 +53,7 @@ def convert_to_csv(data, output_file):
         for row in data:
             prompt = row[0]
             responses = row[1:6]
-            options = row[6:10]
+            options = row[6:]  # Changed to include all elements from index 6 onwards
             if prompt.lower().strip() == "input prompt":
                 # print(f"Skipping header row: {row}")
                 continue
