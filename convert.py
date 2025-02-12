@@ -45,8 +45,8 @@ def clear_output_folder(folder_path):
 
 # Function to convert input data to structured CSV
 def convert_to_csv(data, output_file):
-    with open(output_file, 'w', newline='') as csvfile:
-        fieldnames = ['artist', 'title', 'album', 'prompt', 'include_top_ten_tracks', 'include_followed_artists', 'include_saved_albums', 'include_saved_tracks', 'include_country']
+    with open(output_file, 'w', newline='', encoding='utf8') as csvfile:
+        fieldnames = ['artist', 'title', 'album', 'prompt', 'include_top_ten_tracks', 'include_top_ten_artists', 'include_saved_albums', 'include_saved_tracks', 'include_country']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -59,30 +59,39 @@ def convert_to_csv(data, output_file):
                 continue
             for response in responses:
                 try:
-                    # Directly use the response string as the track ID
                     if(response.strip() == True or response.strip() == False):
                         continue
                     track_id = response.strip()
-                    track = sp.track(track_id)
-                    artist = track['artists'][0]['name']
-                    title = track['name']
-                    album = track['album']['name']
-                    row_dict = {
-                        'artist': artist,
-                        'title': title,
-                        'album': album,
-                        'prompt': prompt,
-                        'include_top_ten_tracks': options[0].strip(),
-                        'include_followed_artists': options[1].strip(),
-                        'include_saved_albums': options[2].strip(),
-                        'include_saved_tracks': options[3].strip(),
-                        'include_country': options[4].strip() if len(options) > 4 else ''
-                    }
-                    writer.writerow(row_dict)
+                    retries = 5
+                    for attempt in range(retries):
+                        try:
+                            track = sp.track(track_id)
+                            artist = track['artists'][0]['name']
+                            title = track['name']
+                            album = track['album']['name']
+                            row_dict = {
+                                'artist': artist,
+                                'title': title,
+                                'album': album,
+                                'prompt': prompt,
+                                'include_top_ten_tracks': options[0].strip(),
+                                'include_top_ten_artists': options[1].strip(),
+                                'include_saved_albums': options[2].strip(),
+                                'include_saved_tracks': options[3].strip(),
+                                'include_country': options[4].strip() if len(options) > 4 else ''
+                            }
+                            writer.writerow(row_dict)
+                            break
+                        except spotipy.exceptions.SpotifyException as e:
+                            print(f"Spotify API error for track ID {response}: {e}")
+                            if "rate limit" in str(e).lower() or "timeout" in str(e).lower():
+                                wait_time = 30 * (2 * attempt)  # Exponential backoff
+                                print(f"Rate limit or timeout error. Waiting for {wait_time} seconds before retrying...")
+                                time.sleep(wait_time)
+                            else:
+                                break
                 except (SyntaxError, ValueError) as e:
                     print(f"Error evaluating response: {response} - {e}")
-                except spotipy.exceptions.SpotifyException as e:
-                    print(f"Spotify API error for track ID {response}: {e}")
 
 def main():
     # Load input data from all CSV files in the output directory
