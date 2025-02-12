@@ -179,7 +179,7 @@ def generate_response(prompt, num_runs=5):
             # print(ban_list) # Debug
             while not track_id:
                 # add ban list to end of prompt
-                prompt += f"\n\nThe following songs are already in the list or do not exist: {ban_list}, {unknown_songs}. Do not recommend them."
+                prompt += f"\n\nThe following songs are already in the list: {ban_list}. Do not recommend them."
                 print(f"\t\tRe-prompting for song: ")
                 track = prompt_for_song(prompt, 1)
                 track_info = process_json(track)
@@ -238,6 +238,10 @@ def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True
     
 
 def check_song_exists(title, artist, verbose=True):
+    if f"{title}-{artist}" in unknown_songs:
+        if(verbose):
+            print(f"\t\tSkipping unknown song")
+        return None
     search_result = sp.search(q=f'artist:{artist} track:{title}', type='track')
     if search_result['tracks']['items']:
         track_id = search_result['tracks']['items'][0]['id']
