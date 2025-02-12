@@ -70,10 +70,10 @@ def convert_to_csv(data, output_file):
                             title = track['name']
                             album = track['album']['name']
                             row_dict = {
+                                'prompt': prompt,
                                 'artist': artist,
                                 'title': title,
                                 'album': album,
-                                'prompt': prompt,
                                 'include_top_ten_tracks': options[0].strip(),
                                 'include_top_ten_artists': options[1].strip(),
                                 'include_saved_albums': options[2].strip(),
@@ -81,6 +81,7 @@ def convert_to_csv(data, output_file):
                                 'include_country': options[4].strip() if len(options) > 4 else ''
                             }
                             writer.writerow(row_dict)
+                            time.sleep(0.5)  # Add a delay to avoid rate limiting
                             break
                         except spotipy.exceptions.SpotifyException as e:
                             print(f"Spotify API error for track ID {response}: {e}")
