@@ -34,6 +34,8 @@ auth_manager = SpotifyOAuth(client_id=CLIENT_ID,
                             scope=SCOPE)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
+song_cache = {}
+
 # Clear all files in the specified folder.
 def clear_output_folder(folder_path):
     for root, dirs, files in os.walk(folder_path, topdown=False):
@@ -62,37 +64,38 @@ def convert_to_csv(data, output_file):
                     if(response.strip() == True or response.strip() == False):
                         continue
                     track_id = response.strip()
-                    retries = 5
-                    for attempt in range(retries):
-                        try:
-                            track = sp.track(track_id)
-                            artist = track['artists'][0]['name']
-                            title = track['name']
-                            album = track['album']['name']
-                            row_dict = {
-                                'prompt': prompt,
-                                'artist': artist,
-                                'title': title,
-                                'album': album,
-                                'include_top_ten_tracks': options[0].strip(),
-                                'include_top_ten_artists': options[1].strip(),
-                                'include_saved_albums': options[2].strip(),
-                                'include_saved_tracks': options[3].strip(),
-                                'include_country': options[4].strip() if len(options) > 4 else ''
-                            }
-                            writer.writerow(row_dict)
-                            time.sleep(0.5)  # Add a delay to avoid rate limiting
-                            break
-                        except spotipy.exceptions.SpotifyException as e:
-                            print(f"Spotify API error for track ID {response}: {e}")
-                            if "rate limit" in str(e).lower() or "timeout" in str(e).lower():
-                                wait_time = 30 * (2 * attempt)  # Exponential backoff
-                                print(f"Rate limit or timeout error. Waiting for {wait_time} seconds before retrying...")
-                                time.sleep(wait_time)
-                            else:
-                                break
+                    try:
+                        if track_id not in song_cache:
+                            print(f"Fetching track ID {track_id} from Spotify API...")
+                            song_cache[track_id] = sp.track(track_id)
+                        else:
+                            print(f"Track ID {track_id} found in cache.")
+                        track = song_cache[track_id]
+                        artist = track['artists'][0]['name']
+                        title = track['name']
+                        album = track['album']['name']
+                        row_dict = {
+                            'prompt': prompt,
+                            'artist': artist,
+                            'title': title,
+                            'album': album,
+                            'include_top_ten_tracks': options[0].strip(),
+                            'include_top_ten_artists': options[1].strip(),
+                            'include_saved_albums': options[2].strip(),
+                            'include_saved_tracks': options[3].strip(),
+                            'include_country': options[4].strip() if len(options) > 4 else ''
+                        }
+                        writer.writerow(row_dict)
+                    except spotipy.exceptions.SpotifyException as e:
+                        print(f"Spotify API error for track ID {response}: {e}")
+                        if "rate limit" in str(e).lower() or "timeout" in str(e).lower():
+                            wait_time = 60 
+                            print(f"Rate limit or timeout error. Waiting for {wait_time} seconds before retrying...")
+                            time.sleep(wait_time)
+                    time.sleep(0.1)  # Add a delay to avoid rate limiting
                 except (SyntaxError, ValueError) as e:
                     print(f"Error evaluating response: {response} - {e}")
+            time.sleep(0.5)  # Add a delay to avoid rate limiting
 
 def main():
     # Load input data from all CSV files in the output directory
