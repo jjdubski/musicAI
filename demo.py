@@ -195,7 +195,7 @@ def main():
     prompt = input("Write input prompt here: ")
     options = [
         'include_top_ten_tracks',
-        'include_followed_artists',
+        'include_top_ten_artists',
         'include_saved_albums',
         'include_saved_tracks',
         'include_country'
@@ -214,7 +214,7 @@ def main():
     print("🧠 Thinking... Please wait.")
     tracks = run_prompt(prompt=prompt,
         include_top_ten_tracks=options_dict['include_top_ten_tracks'],
-        include_followed_artists=options_dict['include_top_ten_artists'],
+        include_top_ten_artists=options_dict['include_top_ten_artists'],
         include_saved_albums=options_dict['include_saved_albums'],
         include_saved_tracks=options_dict['include_saved_tracks'],
         include_country=options_dict['include_country']
