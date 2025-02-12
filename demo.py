@@ -177,6 +177,10 @@ def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True
     
 
 def check_song_exists(title, artist, verbose=True):
+    if f"{title}-{artist}" in unknown_songs:
+        if(verbose):
+            print(f"\t\tUnknown track, skipping.")
+        return None
     search_result = sp.search(q=f'artist:{artist} track:{title}', type='track')
     if search_result['tracks']['items']:
         track_id = search_result['tracks']['items'][0]['id']
