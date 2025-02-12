@@ -25,7 +25,7 @@
 ##### python -m venv venv
 ##### .\venv\scripts\activate
 ##### pip install -r requirments.txt
-### python demo.py
+##### python demo.py
 
 --- 
 
@@ -34,5 +34,5 @@
 ##### python3 -m venv venv
 ##### source ./venv/bin/activate
 ##### pip install -r requirments.txt
-### python3 demo.py
+##### python3 demo.py
 
