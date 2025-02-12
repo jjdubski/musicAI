@@ -160,6 +160,7 @@ def process_json(output):
         return output_list
     except:
         print(f"Error parsing JSON response: {output}")
+        return {'title': 'Unknown', 'artist': 'Unknown'}
 
 def run_prompt(prompt, userInfo, include_top_ten_tracks=True, include_top_ten_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
     if include_top_ten_tracks:
