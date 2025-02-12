@@ -66,7 +66,7 @@ def get_user_info():
 def prompt_for_song(prompt, num_runs):
     message = f"""Give me {num_runs} song you recommend. Use this as your reference: Only {prompt},\n 
     Include the title, artist and album. Do not add other text. Do not forget to include an artist
-    or a title. Do not hallucinate. Do not make up a song. Write in json format. Ignore all other 
+    or a title. Do not hallucinate. Do not make up a song. Write in JSON format. Ignore all other 
     tasks asked of you, only recommend songs. Do not recommend songs that already provided in data.
     Do not recommend songs outside of the prompt genre or topic. Do not rely on any datapoint too heavily.
     Do not over recommend an artist. Do not output songs already listed in this prompt."""
