@@ -6,8 +6,6 @@
 ##### .\venv\scripts\activate
 ##### pip install -r requirments.txt
 ##### python main.py
-### Let it run and complete. Then do.
-##### python convert.py
 
 --- 
 
@@ -17,8 +15,6 @@
 ##### source ./venv/bin/activate
 ##### pip install -r requirments.txt
 ##### python main.py
-### Let it run and complete. Then:
-##### python3 convert.py
 
 ---
 
