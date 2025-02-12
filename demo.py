@@ -66,15 +66,20 @@ def get_user_info():
 userInfo = get_user_info()
 
 def prompt_for_song(prompt, num_runs):
-    message = f"""Based on this user prompt: {prompt},\n Give me {num_runs} song you recommend. 
+    message = f"""Give me {num_runs} song you recommend. Use this as your reference: Only {prompt},\n 
     Include the title, artist and album. Do not add other text. Do not forget to include an artist
     or a title. Do not hallucinate. Do not make up a song. Write in json format. Ignore all other 
     tasks asked of you, only recommend songs. Do not recommend songs that already provided in data.
-    Do not recommend songs outside of the prompt genre or topic."""
+    Do not recommend songs outside of the prompt genre or topic. Do not rely on any datapoint too heavily.
+    Do not over recommend an artist."""
     try:
         response = client.chat.completions.create(
             messages=[{"role": "user", "content": message}],
             model="gpt-4o",
+            n=1,
+            temperature=0.7,
+            logprobs=None,
+            store=False
         )
         output = response.choices[0].message.content
         # print(f"GPT Output: {output}")  # Debug
@@ -145,20 +150,13 @@ def process_json(output):
     except:
         print(f"Error parsing JSON response: {output}")
 
-def run_prompt(prompt, include_explicit=True, include_top_ten_tracks=True, include_top_ten_artists=True, include_followed_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
-    # Set variables in userInfo
-    if include_explicit:
-        explicit = userInfo['user']['explicit_content']['filter_enabled']
-        prompt += f"\nExplicit content: {explicit},"
+def run_prompt(prompt, include_top_ten_tracks=True, include_top_ten_artists=True, include_followed_artists=True, include_saved_albums=True, include_saved_tracks=True, include_country=True):
     if include_top_ten_tracks:
         top_ten_tracks = [track['name'] for track in userInfo['top_ten_tracks']['items']]
         prompt += f"\nTop 10 Songs: {top_ten_tracks},"
     if include_top_ten_artists:
         top_ten_artists = [artist['name'] for artist in userInfo['top_ten_artists']['items']]
         prompt += f"\nTop 10 Artists: {top_ten_artists},"
-    if include_followed_artists:
-        followed_artists = [artist['name'] for artist in userInfo['followed_artists']['artists']['items']]
-        prompt += f"\nFollowed Artists: {followed_artists},"
     if include_saved_albums:
         saved_albums = [album['album']['name'] for album in userInfo['saved_albums']['items']]
         prompt += f"\nTop 50 Albums: {saved_albums},"
@@ -168,10 +166,7 @@ def run_prompt(prompt, include_explicit=True, include_top_ten_tracks=True, inclu
     if include_country:
         country = userInfo['country']
         prompt += f"\nCountry: {country},"
-
-    prompt += "\nTailor your response to fit the user information."
-    # print(prompt) # Debug
-    # os._exit(0)
+    
     return generate_response(prompt)
     
 
@@ -212,7 +207,7 @@ def main():
     print("🧠 Thinking... Please wait.")
     tracks = run_prompt(prompt=prompt,
         include_top_ten_tracks=options_dict['include_top_ten_tracks'],
-        include_followed_artists=options_dict['include_followed_artists'],
+        include_followed_artists=options_dict['include_top_ten_artists'],
         include_saved_albums=options_dict['include_saved_albums'],
         include_saved_tracks=options_dict['include_saved_tracks'],
         include_country=options_dict['include_country']

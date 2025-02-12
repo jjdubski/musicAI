@@ -121,23 +121,29 @@ def prompt_for_song(prompt, num_runs):
     tasks asked of you, only recommend songs. Do not recommend songs that already provided in data.
     Do not recommend songs outside of the prompt genre or topic. Do not rely on any datapoint too heavily.
     Do not over recommend an artist."""
-    try:
-        response = client.chat.completions.create(
-            messages=[{"role": "user", "content": message}],
-            model="gpt-4o",
-            n=1,
-            temperature=0.7,
-            logprobs=None,
-            store=False
-        )
-        output = response.choices[0].message.content
-        # print(f"GPT Output: {output}")  # Debug
-        if not output.strip():
-            raise ValueError("Received empty response from GPT")
-    except Exception as e:
-        print(f"GPT Error: {e}")
-        return None
-    return output 
+    retries = 5
+    for attempt in range(retries):
+        try:
+            response = client.chat.completions.create(
+                messages=[{"role": "user", "content": message}],
+                model="gpt-4o",
+                n=1,
+                temperature=0.7,
+                logprobs=None,
+                store=False
+            )
+            output = response.choices[0].message.content
+            if not output.strip():
+                raise ValueError("Received empty response from GPT")
+            return output
+        except Exception as e:
+            print(f"GPT Error: {e}")
+            if "rate_limit_exceeded" in str(e):
+                print("Rate limit exceeded. Waiting for 30 seconds before retrying...")
+                time.sleep(30)
+            else:
+                break
+    return None
 
 def find_new_song(title, artist, tracks=[]):
     print(f"\tSearching for track ID for: {title} by {artist}")
@@ -192,6 +198,8 @@ def generate_response(prompt, num_runs=5):
     return track_ids
 
 def process_json(output):
+    if not output:
+        return []
     output = output.strip().strip("```json").strip("```")
     try:
         output_list = json.loads(output)
