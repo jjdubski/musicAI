@@ -18,6 +18,7 @@ CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
 SCOPE = "user-library-read user-read-email user-top-read user-read-private user-follow-read"
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+print(CLIENT_ID) # Debug
 
 # Check for missing enviorment variables
 missing_vars = []
