@@ -95,7 +95,6 @@ def convert_to_csv(data, output_file):
                     time.sleep(0.1)  # Add a delay to avoid rate limiting
                 except (SyntaxError, ValueError) as e:
                     print(f"Error evaluating response: {response} - {e}")
-            time.sleep(0.5)  # Add a delay to avoid rate limiting
 
 def main():
     # Load input data from all CSV files in the output directory
